@@ -87,44 +87,55 @@ def depthFirstSearch(problem):
     print "Start's successors:", problem.getSuccessors(problem.getStartState())
     """
     "*** YOUR CODE HERE ***"
-    state_stack = util.Stack()
+    stack = util.Stack()
     start = problem.getStartState()
     visited = set()
     #path_dic = {}
-    state_stack.push((start, []))
-    while not state_stack.isEmpty():
-        cur_state, path = state_stack.pop()
-        if cur_state in visited:
-            continue
-        if problem.isGoalState(cur_state):
+    stack.push((start, []))
+    while not stack.isEmpty():
+        current, path = stack.pop()
+        #print(path)
+
+        if problem.isGoalState(current):
+            print("Done !!")
             return path
             #break
-        visited.add(cur_state)
-        successors = problem.getSuccessors(cur_state)
-        for successor in successors:
-            suc_state, direction, step_cost = successor[0], successor[1], successor[2]
-            if suc_state not in visited:
-                state_stack.push((suc_state, path+[direction]))
+        if current in visited:
+            continue
+        visited.add(current)
+        children = problem.getSuccessors(current)
+        #print(children)
+        for child in children:
+            #child=[child_state,direction,stepcost]
+            if child[0] not in visited:
+                stack.push((child[0], path+[child[1]]))
 
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
-    state_queue = util.Queue()
-    state_queue.push((problem.getStartState(), []))
+    queue = util.Queue()
+    start = problem.getStartState()
     visited = set()
-    while not state_queue.isEmpty():
-        node,path = state_queue.pop()
-        if node in visited:
-            continue
-        visited.add(node)
-        if problem.isGoalState(node):
+    queue.push((start, []))
+    while not queue.isEmpty():
+        current,path = queue.pop()
+
+        if problem.isGoalState(current):
+            print("Done !!")
             return path
-        successors = problem.getSuccessors(node)
-        for successor in successors:
-            suc_state, direction, step_cost = successor[0], successor[1], successor[2]
-            if suc_state not in visited:
-                state_queue.push((suc_state, path + [direction]))
+            #break
+        
+        if current in visited:
+            continue
+
+        visited.add(current)
+        children = problem.getSuccessors(current)
+        #print(children)
+        for child in children:
+            #child=[child_state,direction,stepcost]
+            if child[0] not in visited:
+                queue.push((child[0], path + [child[1]]))
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
@@ -132,29 +143,36 @@ def uniformCostSearch(problem):
     PriorityQueue = util.PriorityQueue()
     visited=set()
     PriorityQueue.push((problem.getStartState(), []), 0)
+    # Push ((Node, [path-from-start-to-node]), initial-cost = 0) into the fringe
     #start state and an empty list to keep a track of all parents
     distance={}
     distance[problem.getStartState()] = 0
     #This keeps the track of distance of all visited nodes 
     while(not PriorityQueue.isEmpty()):
         current, path = PriorityQueue.pop()
+        
+        if problem.isGoalState(current):
+            #print(path)
+            #print("Distance",distance)
+            return path
+
         if current in visited:
             continue
         visited.add(current)
         path_cost = distance[current]
-        if problem.isGoalState(current):
-            print(path)
+
         children = problem.getSuccessors(current)
         # children is a list
         for child in children:
-            next_state, direction, step_cost = child[0], child[1], child[2]
-            if next_state in distance and distance[next_state] <= path_cost + step_cost:
+            #child=[child_state,direction,stepcost]
+            child_state, direction, stepcost = child[0], child[1], child[2]
+            if child_state in distance and distance[child_state] <= path_cost + stepcost:
                 continue
-            elif next_state in distance:
-                PriorityQueue.update((next_state, path+[direction]), path_cost+step_cost)
+            elif child_state in distance:
+                PriorityQueue.update((child_state, path+[direction]), path_cost+stepcost)
             else:
-                PriorityQueue.push((next_state, path+[direction]), path_cost+step_cost)
-            distance[next_state] = path_cost + step_cost
+                PriorityQueue.push((child_state, path+[direction]), path_cost+stepcost)
+            distance[child_state] = path_cost + stepcost
 
 
 
@@ -178,23 +196,28 @@ def aStarSearch(problem, heuristic=nullHeuristic):
     #This keeps the track of distance of all visited nodes 
     while(not PriorityQueue.isEmpty()):
         current, path = PriorityQueue.pop()
+
+        if problem.isGoalState(current):
+            #print(path)
+            return path 
+
         if current in visited:
             continue
         visited.add(current)
         path_cost = distance[current]
-        if problem.isGoalState(current):
-            print(path)
+        
         children = problem.getSuccessors(current)
-        # children is a list
+        # children is a list of a lists
         for child in children:
-            next_state, direction, step_cost = child[0], child[1], child[2]
-            if next_state in distance and distance[next_state] <= path_cost + step_cost:
+            #child=[child_state,direction,stepcost]
+            child_state, direction, stepcost = child[0], child[1], child[2]
+            if child_state in distance and distance[child_state] <= path_cost + stepcost:
                 continue
-            elif next_state in distance:
-                PriorityQueue.update((next_state, path+[direction]), path_cost+step_cost+heuristic(next_state,problem))
+            elif child_state in distance:
+                PriorityQueue.update((child_state, path+[direction]), path_cost+stepcost+heuristic(child_state,problem))
             else:
-                PriorityQueue.push((next_state, path+[direction]), path_cost+step_cost+heuristic(next_state,problem))
-            distance[next_state] = path_cost + step_cost
+                PriorityQueue.push((child_state, path+[direction]), path_cost+stepcost+heuristic(child_state,problem))
+            distance[child_state] = path_cost + stepcost
 
 
 

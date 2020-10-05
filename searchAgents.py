@@ -302,7 +302,7 @@ class CornersProblem(search.SearchProblem):
         """
         "*** YOUR CODE HERE ***"
         return (self.startingPosition,self.cornerFood)
-        util.raiseNotDefined()
+        #util.raiseNotDefined()
 
 
     def isGoalState(self, state):
@@ -340,6 +340,22 @@ class CornersProblem(search.SearchProblem):
             #   hitsWall = self.walls[nextx][nexty]
 
             "*** YOUR CODE HERE ***"
+            x,y = state[0]
+            currentCornerState=state[1]
+            dx, dy = Actions.directionToVector(action)
+            x1,y1 = int(x + dx), int(y + dy)
+            newPosition=(x1,y1)
+            newCorner=[]
+            if(not self.walls[x1][y1]):
+                for corner in currentCornerState:
+                    position=corner[0]
+                    if(position==newPosition):
+                        newCorner.append((position,True))
+                    else:
+                        newCorner.append((position,False))
+                newCorner=tuple(newCorner)
+                successor=(newPosition,newCorner)
+                successors.append(successor,action,1)
 
         self._expanded += 1 # DO NOT CHANGE
         return successors
