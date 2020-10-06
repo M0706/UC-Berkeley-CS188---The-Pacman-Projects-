@@ -395,6 +395,15 @@ def cornersHeuristic(state, problem):
     if problem.isGoalState(state):
         return 0
 
+
+    #Referenced the following heuristic idea from given link
+    # https://rshcaroline.github.io/research/resources/pacman-report.pdf
+
+    '''This link constains and explains various ideas of how various heuristics
+       can be prepared. I tested all of them and took one of them which gave 
+       best results.
+    '''
+
     currentPosition=state[0]
     unvisited = []
     #print(state[1])
@@ -475,6 +484,20 @@ class FoodSearchProblem:
             cost += 1
         return cost
 
+class Position_Search(PositionSearchProblem):
+        """
+        Inherit from `PositionSearchProblem`, allowing walls as a parameter.
+        """
+        def __init__(self, start, goal, walls):
+            self.walls = walls
+            self.startState = start
+            self.goal = goal
+            self.costFn = lambda x: 1
+            self.visualize = False
+
+            self._visited, self._visitedlist, self._expanded = {}, [], 0  # DO NOT CHANGE
+
+
 class AStarFoodSearchAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
     def __init__(self):
@@ -511,7 +534,68 @@ def foodHeuristic(state, problem):
     """
     position, foodGrid = state
     "*** YOUR CODE HERE ***"
-    return 0
+
+
+
+
+    #Referenced the following heuristic idea from given link
+    # https://rshcaroline.github.io/research/resources/pacman-report.pdf
+
+    '''This link constains and explains various ideas of how various heuristics
+       can be prepared. I tested all of them and took one of them which gave 
+       best results.
+       I have commentized a couple of other heuristic functions for reference.
+    '''
+
+    # position, foodGrid = state
+    
+    # distances = [0]
+    # for food in foodGrid.asList():
+    #     distances.append(util.manhattanDistance(position, food))
+    
+    # return max(distances)
+
+
+    def Maze_distance_bw_2_points(start, end):
+        """
+        Returns the maze distance between any two points, using the search functions
+        you have already built.
+        """
+        if((start, end) in problem.heuristicInfo):
+            return problem.heuristicInfo[(start, end)]
+        else:
+            prob = Position_Search(start=start, goal=end, walls=problem.walls)
+            problem.heuristicInfo[(start, end)] = len(search.astar(prob))
+            return problem.heuristicInfo[(start, end)]
+
+    #This heurtic was a little slow than the one below it 
+    # Search nodes expanded: 4137, Score: 570
+    #Path found with total cost of 60 in 4.0 seconds
+
+    # distances = [0]
+    # for food in foodGrid.asList():
+    #     distances.append(Maze_distance_bw_2_points(position, food))
+    
+    # return max(distances)
+
+
+    #Following is the heuristic which worked best 
+    # For trickySearch: Search nodes expanded: 719, Score: 570
+    # Path found with total cost of 60 in 1.7 seconds
+    '''
+    Similar to the Corner's proble, just adding small modification that is 
+    I use the shortest distance between Pac-man and food along with the longest
+    distance between food items and food items.
+    '''
+    distances = []
+    distances_food = [0]
+    for food in foodGrid.asList():
+        distances.append(Maze_distance_bw_2_points(position, food))
+        for tofood in foodGrid.asList():
+            distances_food.append(Maze_distance_bw_2_points(food, tofood))
+
+    return min(distances)+max(distances_food) if len(distances) else max(distances_food)
+    # return 0
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
@@ -542,6 +626,12 @@ class ClosestDotSearchAgent(SearchAgent):
         problem = AnyFoodSearchProblem(gameState)
 
         "*** YOUR CODE HERE ***"
+        # The search with best results returned
+
+        # return search.bfs(problem)
+        # return search.dfs(problem)
+        return search.astar(problem)
+        # return search.ucs(problem)
         util.raiseNotDefined()
 
 class AnyFoodSearchProblem(PositionSearchProblem):
@@ -578,6 +668,7 @@ class AnyFoodSearchProblem(PositionSearchProblem):
         x,y = state
 
         "*** YOUR CODE HERE ***"
+        return self.food[x][y]
         util.raiseNotDefined()
 
 def mazeDistance(point1, point2, gameState):

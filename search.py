@@ -72,43 +72,41 @@ def tinyMazeSearch(problem):
     w = Directions.WEST
     return  [s, s, w, s, w, w, s, w]
 
-def genericSearch(problem, frontier, frontierAdd):
+def Common_Search_part(problem, frontier, frontierAdd):
     """
-    Full-fledged generic search functions to help Pacman plan routes.
-    Since each algorithm is very similar. Algorithms for DFS, BFS, UCS, and A*
-    differ only in the details of how the frontier is managed.
-    Hence I implemented a single generic method which is configured with
-    an algorithm-specific queuing strategy called frontierAdd.
+    Since it's really close to each algorithm. DFS, BFS, UCS, and A * Algorithms 
+    And only in the specifics of how the boundary is handled can they vary. 
+    I have thus introduced a single common function incorporating the common part.
     """
     # initialize the frontier using the initial state of problem
     startState = (problem.getStartState(), 0, [])  # node is a tuple with format like : (state, cost, path)
+    #print(startState)
     frontierAdd(frontier, startState, 0)       # frontierAdd(frontier, node, cost)
 
-    # initialize the explored set to be empty
-    explored = []      # use set to keep distinct
+    # initialize the visited set to be empty
+    visited = []      # use set to keep distinct
 
     # loop do
     while not frontier.isEmpty():
         # choose a leaf node and remove it from the frontier
-        (state, cost, path) = frontier.pop()
+        (current_state, cost, path) = frontier.pop()
 
-        # if the node contains a goal state then return the corresponding solution
-        if problem.isGoalState(state):
+        # if the node contains a goal current_state then return the corresponding solution
+        if problem.isGoalState(current_state):
             return path
 
-        # add the node to the explored set
-        if not state in explored:
-            explored.append(state)
+        # add the node to the visited set
+        if not current_state in visited:
+            visited.append(current_state)
 
             # expand the chosen node, adding the resulting nodes to the frontier
-            # ??? only if not in the frontier or explored set
-            for childState, childAction, childCost in problem.getSuccessors(state):
-                newCost = cost + childCost     # Notice! Can't use cost += childCost
-                newPath = path + [childAction]     # Notice! Can't use path.append(childAction)
+            for childState, childAction, childCost in problem.getSuccessors(current_state):
+                newCost = cost + childCost     # Error: Can't use cost += childCost
+                newPath = path + [childAction]     # Error: Can't use path.append(childAction)
                 newState = (childState, newCost, newPath)
                 frontierAdd(frontier, newState, newCost)
 
-    # if the frontier is empty then return failure
+    # if the empty frontier then return failure
     return "There is nothing in frontier. Failure!"
 
 
@@ -128,21 +126,21 @@ def depthFirstSearch(problem):
     frontier = util.Stack()    # use stack data structure provided in util.py, LIFO
     def frontierAdd(frontier, node, cost):
         # if not node in frontier.list:
-        frontier.push(node)  # node is a tuple with format like : (state, cost, path)
+        frontier.push(node)  # node is a tuple with format like : (current_state, cost, path)
 
-    return genericSearch(problem, frontier, frontierAdd)
+    return Common_Search_part(problem, frontier, frontierAdd)
     # util.raiseNotDefined()
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
 
-    frontier = util.Queue()    # FIFO
+    frontier = util.Queue()   
     def frontierAdd(frontier, node, cost):
         # if not node in frontier.list:
         frontier.push(node)  # node is a tuple with format like : (state, cost, path)
 
-    return genericSearch(problem, frontier, frontierAdd)
+    return Common_Search_part(problem, frontier, frontierAdd)
     # util.raiseNotDefined()
 
 def uniformCostSearch(problem):
@@ -153,7 +151,7 @@ def uniformCostSearch(problem):
     def frontierAdd(frontier, node, cost):
         frontier.push(node, cost)  # node is a tuple with format like : (state, cost, path)
 
-    return genericSearch(problem, frontier, frontierAdd)
+    return Common_Search_part(problem, frontier, frontierAdd)
     # util.raiseNotDefined()
 
 def nullHeuristic(state, problem=None):
@@ -173,11 +171,11 @@ def aStarSearch(problem, heuristic=nullHeuristic):
     "*** YOUR CODE HERE ***"
 
     frontier = util.PriorityQueue()
-    def frontierAdd(frontier, node, cost):  # node is a tuple with format like : (state, cost, path)
+    def frontierAdd(frontier, node, cost):  
         cost += heuristic(node[0], problem)   # f(n) = g(n) + h(n), heuristic(state, problem=None)
         frontier.push(node, cost)
 
-    return genericSearch(problem, frontier, frontierAdd)
+    return Common_Search_part(problem, frontier, frontierAdd)
     util.raiseNotDefined()
 
 
