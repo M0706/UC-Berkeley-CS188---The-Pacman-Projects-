@@ -312,6 +312,7 @@ class CornersProblem(search.SearchProblem):
         "*** YOUR CODE HERE ***"
         #In this we want that we have explored all corner states
         current,State_Corner= state[0],state[1]
+        #print("CornerState",State_Corner)
         for corner in State_Corner:
             if(corner[1]==False):
                 return False
@@ -348,14 +349,14 @@ class CornersProblem(search.SearchProblem):
             newCorner=[]
             if(not self.walls[x1][y1]):
                 for corner in currentCornerState:
-                    position=corner[0]
-                    if(position==newPosition):
-                        newCorner.append((position,True))
+                    #corner=[position,boolean wheather its visited or not]
+                    if(corner[0]==newPosition):
+                        newCorner.append((corner[0],True))
                     else:
-                        newCorner.append((position,False))
+                        newCorner.append((corner[0],corner[1]))
                 newCorner=tuple(newCorner)
                 successor=(newPosition,newCorner)
-                successors.append(successor,action,1)
+                successors.append((successor,action,1))
 
         self._expanded += 1 # DO NOT CHANGE
         return successors
@@ -391,6 +392,31 @@ def cornersHeuristic(state, problem):
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
 
     "*** YOUR CODE HERE ***"
+    if problem.isGoalState(state):
+        return 0
+
+    currentPosition=state[0]
+    unvisited = []
+    #print(state[1])
+    for s in state[1]:
+        if(s[1]==False):
+            unvisited.append(list(s[0]))
+    heuristic=0
+    while(len(unvisited)):
+        distance_from_Corners=[]
+        for corner in unvisited:
+            distance = util.manhattanDistance(currentPosition, corner)
+            distance_from_Corners.append((distance,corner))
+        min_distance,current_corner=min(distance_from_Corners)
+        heuristic+=min_distance
+        currentPosition=current_corner
+        unvisited.remove(current_corner)
+    
+    return heuristic
+
+
+
+
     return 0 # Default to trivial solution
 
 class AStarCornersAgent(SearchAgent):

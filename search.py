@@ -72,109 +72,89 @@ def tinyMazeSearch(problem):
     w = Directions.WEST
     return  [s, s, w, s, w, w, s, w]
 
+def genericSearch(problem, frontier, frontierAdd):
+    """
+    Full-fledged generic search functions to help Pacman plan routes.
+    Since each algorithm is very similar. Algorithms for DFS, BFS, UCS, and A*
+    differ only in the details of how the frontier is managed.
+    Hence I implemented a single generic method which is configured with
+    an algorithm-specific queuing strategy called frontierAdd.
+    """
+    # initialize the frontier using the initial state of problem
+    startState = (problem.getStartState(), 0, [])  # node is a tuple with format like : (state, cost, path)
+    frontierAdd(frontier, startState, 0)       # frontierAdd(frontier, node, cost)
+
+    # initialize the explored set to be empty
+    explored = []      # use set to keep distinct
+
+    # loop do
+    while not frontier.isEmpty():
+        # choose a leaf node and remove it from the frontier
+        (state, cost, path) = frontier.pop()
+
+        # if the node contains a goal state then return the corresponding solution
+        if problem.isGoalState(state):
+            return path
+
+        # add the node to the explored set
+        if not state in explored:
+            explored.append(state)
+
+            # expand the chosen node, adding the resulting nodes to the frontier
+            # ??? only if not in the frontier or explored set
+            for childState, childAction, childCost in problem.getSuccessors(state):
+                newCost = cost + childCost     # Notice! Can't use cost += childCost
+                newPath = path + [childAction]     # Notice! Can't use path.append(childAction)
+                newState = (childState, newCost, newPath)
+                frontierAdd(frontier, newState, newCost)
+
+    # if the frontier is empty then return failure
+    return "There is nothing in frontier. Failure!"
+
+
 def depthFirstSearch(problem):
     """
     Search the deepest nodes in the search tree first.
-
     Your search algorithm needs to return a list of actions that reaches the
     goal. Make sure to implement a graph search algorithm.
-
     To get started, you might want to try some of these simple commands to
     understand the search problem that is being passed in:
-
     print "Start:", problem.getStartState()
     print "Is the start a goal?", problem.isGoalState(problem.getStartState())
     print "Start's successors:", problem.getSuccessors(problem.getStartState())
     """
     "*** YOUR CODE HERE ***"
-    stack = util.Stack()
-    start = problem.getStartState()
-    visited = set()
-    #path_dic = {}
-    stack.push((start, []))
-    while not stack.isEmpty():
-        current, path = stack.pop()
-        #print(path)
 
-        if problem.isGoalState(current):
-            print("Done !!")
-            return path
-            #break
-        if current in visited:
-            continue
-        visited.add(current)
-        children = problem.getSuccessors(current)
-        #print(children)
-        for child in children:
-            #child=[child_state,direction,stepcost]
-            if child[0] not in visited:
-                stack.push((child[0], path+[child[1]]))
+    frontier = util.Stack()    # use stack data structure provided in util.py, LIFO
+    def frontierAdd(frontier, node, cost):
+        # if not node in frontier.list:
+        frontier.push(node)  # node is a tuple with format like : (state, cost, path)
 
+    return genericSearch(problem, frontier, frontierAdd)
+    # util.raiseNotDefined()
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
-    queue = util.Queue()
-    start = problem.getStartState()
-    visited = set()
-    queue.push((start, []))
-    while not queue.isEmpty():
-        current,path = queue.pop()
 
-        if problem.isGoalState(current):
-            print("Done !!")
-            return path
-            #break
-        
-        if current in visited:
-            continue
+    frontier = util.Queue()    # FIFO
+    def frontierAdd(frontier, node, cost):
+        # if not node in frontier.list:
+        frontier.push(node)  # node is a tuple with format like : (state, cost, path)
 
-        visited.add(current)
-        children = problem.getSuccessors(current)
-        #print(children)
-        for child in children:
-            #child=[child_state,direction,stepcost]
-            if child[0] not in visited:
-                queue.push((child[0], path + [child[1]]))
+    return genericSearch(problem, frontier, frontierAdd)
+    # util.raiseNotDefined()
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
-    PriorityQueue = util.PriorityQueue()
-    visited=set()
-    PriorityQueue.push((problem.getStartState(), []), 0)
-    # Push ((Node, [path-from-start-to-node]), initial-cost = 0) into the fringe
-    #start state and an empty list to keep a track of all parents
-    distance={}
-    distance[problem.getStartState()] = 0
-    #This keeps the track of distance of all visited nodes 
-    while(not PriorityQueue.isEmpty()):
-        current, path = PriorityQueue.pop()
-        
-        if problem.isGoalState(current):
-            #print(path)
-            #print("Distance",distance)
-            return path
 
-        if current in visited:
-            continue
-        visited.add(current)
-        path_cost = distance[current]
+    frontier = util.PriorityQueue()    # Priority Queue ordered by cost
+    def frontierAdd(frontier, node, cost):
+        frontier.push(node, cost)  # node is a tuple with format like : (state, cost, path)
 
-        children = problem.getSuccessors(current)
-        # children is a list
-        for child in children:
-            #child=[child_state,direction,stepcost]
-            child_state, direction, stepcost = child[0], child[1], child[2]
-            if child_state in distance and distance[child_state] <= path_cost + stepcost:
-                continue
-            elif child_state in distance:
-                PriorityQueue.update((child_state, path+[direction]), path_cost+stepcost)
-            else:
-                PriorityQueue.push((child_state, path+[direction]), path_cost+stepcost)
-            distance[child_state] = path_cost + stepcost
-
-
+    return genericSearch(problem, frontier, frontierAdd)
+    # util.raiseNotDefined()
 
 def nullHeuristic(state, problem=None):
     """
@@ -184,41 +164,21 @@ def nullHeuristic(state, problem=None):
     return 0
 
 def aStarSearch(problem, heuristic=nullHeuristic):
-    """Search the node that has the lowest combined cost and heuristic first."""
+    """
+    Search the node that has the lowest combined cost and heuristic first.
+    A* takes a heuristic function as an argument.
+    Heuristics take two arguments: a state in the search problem (the main argument),
+    and the problem itself (for reference information).
+    """
     "*** YOUR CODE HERE ***"
-    #util.raiseNotDefined()
-    PriorityQueue = util.PriorityQueue()
-    visited=set()
-    PriorityQueue.push((problem.getStartState(), []), 0+heuristic(problem.getStartState(),problem))
-    #start state and an empty list to keep a track of all parents
-    distance={}
-    distance[problem.getStartState()] = 0
-    #This keeps the track of distance of all visited nodes 
-    while(not PriorityQueue.isEmpty()):
-        current, path = PriorityQueue.pop()
 
-        if problem.isGoalState(current):
-            #print(path)
-            return path 
+    frontier = util.PriorityQueue()
+    def frontierAdd(frontier, node, cost):  # node is a tuple with format like : (state, cost, path)
+        cost += heuristic(node[0], problem)   # f(n) = g(n) + h(n), heuristic(state, problem=None)
+        frontier.push(node, cost)
 
-        if current in visited:
-            continue
-        visited.add(current)
-        path_cost = distance[current]
-        
-        children = problem.getSuccessors(current)
-        # children is a list of a lists
-        for child in children:
-            #child=[child_state,direction,stepcost]
-            child_state, direction, stepcost = child[0], child[1], child[2]
-            if child_state in distance and distance[child_state] <= path_cost + stepcost:
-                continue
-            elif child_state in distance:
-                PriorityQueue.update((child_state, path+[direction]), path_cost+stepcost+heuristic(child_state,problem))
-            else:
-                PriorityQueue.push((child_state, path+[direction]), path_cost+stepcost+heuristic(child_state,problem))
-            distance[child_state] = path_cost + stepcost
-
+    return genericSearch(problem, frontier, frontierAdd)
+    util.raiseNotDefined()
 
 
 # Abbreviations
