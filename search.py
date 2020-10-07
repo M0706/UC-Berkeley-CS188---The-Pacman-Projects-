@@ -129,7 +129,6 @@ def depthFirstSearch(problem):
         frontier.push(node)  # node is a tuple with format like : (current_state, cost, path)
 
     return Common_Search_part(problem, frontier, frontierAdd)
-    # util.raiseNotDefined()
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
@@ -176,7 +175,7 @@ def aStarSearch(problem, heuristic=nullHeuristic):
         frontier.push(node, cost)
 
     return Common_Search_part(problem, frontier, frontierAdd)
-    util.raiseNotDefined()
+    #util.raiseNotDefined()
 
 
 # Abbreviations

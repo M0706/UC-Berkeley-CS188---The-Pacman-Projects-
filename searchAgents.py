@@ -410,6 +410,7 @@ def cornersHeuristic(state, problem):
     for s in state[1]:
         if(s[1]==False):
             unvisited.append(list(s[0]))
+    #print(unvisited)
     heuristic=0
     while(len(unvisited)):
         distance_from_Corners=[]
@@ -422,9 +423,6 @@ def cornersHeuristic(state, problem):
         unvisited.remove(current_corner)
     
     return heuristic
-
-
-
 
     return 0 # Default to trivial solution
 
@@ -593,7 +591,7 @@ def foodHeuristic(state, problem):
         distances.append(Maze_distance_bw_2_points(position, food))
         for tofood in foodGrid.asList():
             distances_food.append(Maze_distance_bw_2_points(food, tofood))
-
+    
     return min(distances)+max(distances_food) if len(distances) else max(distances_food)
     # return 0
 
