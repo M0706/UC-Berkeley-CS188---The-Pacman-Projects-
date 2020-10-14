@@ -288,20 +288,15 @@ class CornersProblem(search.SearchProblem):
         # Please add any code here which you would like to use
         # in initializing the problem
         "*** YOUR CODE HERE ***"
-        self.cornerFood=[]
-        for corner in self.corners:
-            if(self.startingPosition==corner):
-                self.cornerFood.append((corner,True))
-            else:
-                self.cornerFood.append((corner,False))
-        
+        self.startState = (self.startingPosition, self.corners)
+
     def getStartState(self):
         """
         Returns the start state (in your state space, not the full Pacman state
         space)
         """
         "*** YOUR CODE HERE ***"
-        return (self.startingPosition,self.cornerFood)
+        return self.startState
         #util.raiseNotDefined()
 
 
@@ -310,14 +305,8 @@ class CornersProblem(search.SearchProblem):
         Returns whether this search state is a goal state of the problem.
         """
         "*** YOUR CODE HERE ***"
-        #In this we want that we have explored all corner states
-        current,State_Corner= state[0],state[1]
-        #print("CornerState",State_Corner)
-        for corner in State_Corner:
-            if(corner[1]==False):
-                return False
-        return True
-        #return true only if all corners are expolored
+        # state has the form like ((x,y), corners to be visited)
+        return len(state[1]) == 0
         #util.raiseNotDefined()
 
     def getSuccessors(self, state):
@@ -341,23 +330,22 @@ class CornersProblem(search.SearchProblem):
             #   hitsWall = self.walls[nextx][nexty]
 
             "*** YOUR CODE HERE ***"
-            x,y = state[0]
-            currentCornerState=state[1]
+            x, y = state[0]        # node (x, y) is the currentPosition
             dx, dy = Actions.directionToVector(action)
-            x1,y1 = int(x + dx), int(y + dy)
+            x1, y1 = int(x + dx), int(y + dy)
+            hitsWall = self.walls[x1][y1]
             newPosition=(x1,y1)
-            newCorner=[]
-            if(not self.walls[x1][y1]):
-                for corner in currentCornerState:
-                    #corner=[position,boolean wheather its visited or not]
-                    if(corner[0]==newPosition):
-                        newCorner.append((corner[0],True))
-                    else:
-                        newCorner.append((corner[0],corner[1]))
-                newCorner=tuple(newCorner)
-                successor=(newPosition,newCorner)
-                successors.append((successor,action,1))
+            if not hitsWall:
+                # this means if this corner is visited by next move
+                # remove it from the unvisited corner list
 
+                #https://www.geeksforgeeks.org/python-remove-particular-element-from-tuple-list/
+                #Next line to remove an item is seen from above mentioned link
+
+                unvisitedCorners = tuple(x for x in state[1] if x != (x1, y1))
+                # return a list of triples: (successor, action, stepCost)
+                successors.append((((x1, y1), unvisitedCorners), action, 1))  # a cost of 1
+            
         self._expanded += 1 # DO NOT CHANGE
         return successors
 
@@ -399,18 +387,21 @@ def cornersHeuristic(state, problem):
     #Referenced the following heuristic idea from given link
     # https://rshcaroline.github.io/research/resources/pacman-report.pdf
 
-    '''This link constains and explains various ideas of how various heuristics
+    '''This link contains and explains various ideas of how various heuristics
        can be prepared. I tested all of them and took one of them which gave 
        best results.
     '''
-
+    '''
+    In the following heuristic:
+    1) Calculate the Manhattan distance of the 
+    nearest corner from the starting position (all walls are ignored).
+    2) Consider that if we have already reached a corner, then 
+    we only need to walk along the borders of the map to touch 
+    all unvisited corners.
+    This heuristic will return a cost close to the true cost
+    '''
     currentPosition=state[0]
-    unvisited = []
-    #print(state[1])
-    for s in state[1]:
-        if(s[1]==False):
-            unvisited.append(list(s[0]))
-    #print(unvisited)
+    unvisited = list(state[1])
     heuristic=0
     while(len(unvisited)):
         distance_from_Corners=[]
@@ -624,6 +615,7 @@ class ClosestDotSearchAgent(SearchAgent):
         problem = AnyFoodSearchProblem(gameState)
 
         "*** YOUR CODE HERE ***"
+        
         # The search with best results returned
 
         # return search.bfs(problem)

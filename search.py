@@ -93,6 +93,7 @@ def Common_Search_part(problem, frontier, frontierAdd):
 
         # if the node contains a goal current_state then return the corresponding solution
         if problem.isGoalState(current_state):
+            #print(path)
             return path
 
         # add the node to the visited set
@@ -127,7 +128,8 @@ def depthFirstSearch(problem):
     def frontierAdd(frontier, node, cost):
         # if not node in frontier.list:
         frontier.push(node)  # node is a tuple with format like : (current_state, cost, path)
-
+    
+    #return the common function made for all the searches
     return Common_Search_part(problem, frontier, frontierAdd)
 
 def breadthFirstSearch(problem):
@@ -138,7 +140,8 @@ def breadthFirstSearch(problem):
     def frontierAdd(frontier, node, cost):
         # if not node in frontier.list:
         frontier.push(node)  # node is a tuple with format like : (state, cost, path)
-
+    
+    #return the common function made for all the searches
     return Common_Search_part(problem, frontier, frontierAdd)
     # util.raiseNotDefined()
 
